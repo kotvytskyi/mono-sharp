@@ -20,9 +20,20 @@ func main() {
 		panic(err)
 	}
 
-	affected := getAffectedProjects(projects[10:20], projects)
+	changedProjects := []Project{}
+	files := getChangedFiles(sln)
+	for _, file := range files {
+		project, err := getFileProject(file, sln, projects)
+		if err == nil {
+			changedProjects = append(changedProjects, project)
+		}
+	}
 
-	fmt.Printf("%s", affected)
+	affected := getAffectedProjects(changedProjects, projects)
+
+	for _, affected := range affected {
+		fmt.Println(affected.name)
+	}
 }
 
 func parseProjects(sln string) ([]Project, error) {
@@ -134,6 +145,55 @@ func getSolutionPath(path string) (string, error) {
 	}
 
 	return path, nil
+}
+
+func getChangedFiles(slnPath string) []string {
+	cmd := exec.Command("git", "diff", "HEAD", "HEAD~10", "--name-only")
+	cmd.Dir = slnPath
+
+	stdout, err := cmd.Output()
+	if err != nil {
+		panic(err)
+	}
+
+	files := strings.Split(strings.Trim(string(stdout), "\n"), "\n")
+
+	result := []string{}
+
+	gitDir := getGitDir(slnPath)
+	slnPrefix, err := filepath.Rel(gitDir, slnPath)
+	for _, file := range files {
+		if strings.HasPrefix(file, slnPrefix) {
+			result = append(result, strings.Replace(file, slnPrefix, "", 1))
+		}
+	}
+
+	return result
+}
+
+func getGitDir(slnPath string) string {
+	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
+	cmd.Dir = slnPath
+	stdout, err := cmd.Output()
+	if err != nil {
+		panic(err)
+	}
+
+	return strings.Trim(string(stdout), "\n")
+}
+
+// Checks if filepath is relative to any project dir path.
+// Returns project or error if not found
+func getFileProject(file string, sln string, allProjects []Project) (Project, error) {
+	for _, project := range allProjects {
+		projectDir := filepath.Join(sln, filepath.Dir(project.name))
+		path, err := filepath.Rel(projectDir, filepath.Join(sln, file))
+		if err == nil && !strings.Contains(path, "..") {
+			return project, nil
+		}
+	}
+
+	return Project{}, fmt.Errorf("NOT FOUND")
 }
 
 func getProjects(slnPath string) []string {
