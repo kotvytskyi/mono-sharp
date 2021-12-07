@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -10,6 +11,23 @@ import (
 )
 
 func main() {
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+
+		fmt.Fprintf(os.Stderr, "%s {sln} \n  {sln} string \n\t{sln} solution path\n", os.Args[0])
+
+		flag.PrintDefaults()
+	}
+
+	from := flag.String("from", "HEAD", "'from' git commit")
+	to := flag.String("to", "HEAD~1", "'to' git commit")
+
+	flag.Parse()
+	if flag.NArg() == 0 {
+		flag.Usage()
+		os.Exit(1)
+	}
+
 	sln, err := getSolutionPath(os.Args[1])
 	if err != nil {
 		panic(err)
@@ -21,7 +39,7 @@ func main() {
 	}
 
 	changedProjects := []Project{}
-	files := getChangedFiles(sln)
+	files := getChangedFiles(sln, *from, *to)
 	for _, file := range files {
 		project, err := getFileProject(file, sln, projects)
 		if err == nil {
@@ -147,8 +165,8 @@ func getSolutionPath(path string) (string, error) {
 	return path, nil
 }
 
-func getChangedFiles(slnPath string) []string {
-	cmd := exec.Command("git", "diff", "HEAD", "HEAD~10", "--name-only")
+func getChangedFiles(slnPath string, from string, to string) []string {
+	cmd := exec.Command("git", "diff", from, to, "--name-only")
 	cmd.Dir = slnPath
 
 	stdout, err := cmd.Output()
