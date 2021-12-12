@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${fileDirname}",
-            "args": ["~/Development/work/ACViz/src/hpc-unity-anti-collision-viz/src/backend"]
+            "args": ["~/Development/work/ACViz/src/hpc-unity-anti-collision-viz/src/backend", "-from=qwe", "-to=ewq"]
         }
     ]
 }
