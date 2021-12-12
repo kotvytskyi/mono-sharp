@@ -1,8 +1,8 @@
 # Mono Sharp
 
-Mono Sharp is a lightway change-tracking tool for .NET solutions. It matches changed files to the solution projects.
+Mono Sharp is a lightway change-tracking tool for .NET solutions. It matches changed files to a solution projects.
 
-* Goes up though a solution graph to resolve the whole dependencies chain 
+* Goes up though a solution graph to resolve the whole dependency chain 
 * Relies on **dotnet CLI**
 
 ## How It Works
