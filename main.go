@@ -5,34 +5,45 @@ import (
 	"fmt"
 	"mono-sharp/pkg/affected"
 	"os"
+	"os/exec"
 )
 
 func main() {
-	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-
-		fmt.Fprintf(os.Stderr, "%s {sln} \n  {sln} string \n\t{sln} solution path\n", os.Args[0])
-
-		flag.PrintDefaults()
-	}
 
 	from := flag.String("from", "HEAD", "'from' git commit")
 	to := flag.String("to", "HEAD~1", "'to' git commit")
+	dir := flag.String("slnDir", "./", "solution file directory")
 
 	flag.Parse()
-	if flag.NArg() == 0 {
-		flag.Usage()
-		os.Exit(1)
+
+	directory := *dir
+	if directory == "./" {
+		currentDir, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+
+		directory = currentDir
 	}
 
-	aff, err := affected.CreateAffected(os.Args[1])
+	aff, err := affected.CreateAffected(directory)
 	if err != nil {
-		panic(err)
+		if exitError, ok := err.(*exec.ExitError); ok {
+			fmt.Printf("%s", string(exitError.Stderr))
+		}
+
+		fmt.Printf("%v", err)
+		os.Exit(1)
 	}
 
 	affectedProjects, err := aff.GetAffectedProjects(*from, *to)
 	if err != nil {
-		panic(err)
+		if exitError, ok := err.(*exec.ExitError); ok {
+			fmt.Printf("%s", string(exitError.Stderr))
+		}
+
+		fmt.Printf("%v", err)
+		os.Exit(1)
 	}
 
 	for _, project := range affectedProjects {
