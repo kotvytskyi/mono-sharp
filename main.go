@@ -6,6 +6,7 @@ import (
 	"mono-sharp/pkg/affected"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 func main() {
@@ -16,7 +17,11 @@ func main() {
 
 	flag.Parse()
 
-	directory := *dir
+	directory, err := filepath.Abs(*dir)
+	if err != nil {
+		panic(err)
+	}
+
 	if directory == "./" {
 		currentDir, err := os.Getwd()
 		if err != nil {
