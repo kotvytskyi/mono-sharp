@@ -2,6 +2,7 @@ package affected
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -63,7 +64,7 @@ func parseProjects(sln string) ([]Project, error) {
 }
 
 func getReferences(slnPath string, projectPath string) ([]string, error) {
-	cmd := exec.Command("dotnet", "list", projectPath, "reference")
+	cmd := exec.Command("sed", "-n", "s/.*ProjectReference.*Include=\"\\(.*\\)\".*/\\1/p", projectPath)
 	cmd.Dir = slnPath
 
 	stdout, err := cmd.Output()
@@ -85,7 +86,7 @@ func getReferences(slnPath string, projectPath string) ([]string, error) {
 			}
 
 			if _, err := os.Stat(abs); err != nil {
-				continue // no references output from dotnet
+				continue // no references
 			}
 
 			relativeToSln := strings.ReplaceAll(abs, fmt.Sprintf("%s/", slnPath), "")
@@ -96,10 +97,20 @@ func getReferences(slnPath string, projectPath string) ([]string, error) {
 	return result, nil
 }
 
-func getProjects(slnPath string) ([]string, error) {
-	cmd := exec.Command("dotnet", "sln", "list")
+func getProjects(slnDirPath string) ([]string, error) {
 
-	cmd.Dir = slnPath
+	slnPath := ""
+	filepath.WalkDir(slnDirPath, func(path string, d fs.DirEntry, err error) error {
+		extension := filepath.Ext(d.Name())
+		if extension == ".sln" {
+			slnPath = d.Name()
+		}
+
+		return nil
+	})
+
+	cmd := exec.Command("sed", "-n", "s/.*Project.*\"\\(.*csproj\\)\".*/\\1/p", slnPath)
+	cmd.Dir = slnDirPath
 	stdout, err := cmd.Output()
 	if err != nil {
 		return []string{}, err
@@ -111,7 +122,7 @@ func getProjects(slnPath string) ([]string, error) {
 
 	for _, project := range projects {
 		if strings.Contains(project, ".csproj") {
-			result = append(result, project)
+			result = append(result, strings.ReplaceAll(project, "\\", "/"))
 		}
 	}
 
