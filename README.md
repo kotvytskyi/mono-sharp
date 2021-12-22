@@ -3,10 +3,10 @@
 Mono Sharp is a lightweight change-tracking tool for .NET solutions. It matches changed files to a solution projects.
 
 * Goes up though a solution graph to resolve the whole dependency chain 
-* Relies on **dotnet CLI**
+* No **dotnet CLI** dependency
 
 ## How It Works
-1. Parses projects from **dotnet CLI** output
+1. Parses solution and projects files
 2. Finds changed files via **git diff**
 3. Finds changes intersection with projects
 4. Searches though projects references to find **affected** projects 
