@@ -41,8 +41,8 @@ Order -> Catalog
 Order -> User
 </pre>
 
-Output
-**monosharp --slnDir ./eShop**
+Output \
+**mono-sharp --slnDir ./eShop**
 <pre>
 eShop/Catalog/Catalog.csproj
 eShop/Basket/Basket.csproj
