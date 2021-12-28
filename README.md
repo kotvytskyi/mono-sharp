@@ -11,6 +11,44 @@ Mono Sharp is a lightweight change-tracking tool for .NET solutions. It matches 
 3. Finds changes intersection with projects
 4. Searches though projects references to find **affected** projects 
 
+### Example
+
+File system
+<pre>
+-- eShop
+   |-- Basket
+     |-- FileA.cs
+     |-- FileB.cs
+     |-- Basket.csproj
+   |-- Catalog
+     |-- FileC.cs
+     |-- FileD.cs - <ins>changed at HEAD~1</ins>
+     |-- Catalog.csproj
+   |-- Order
+     |-- FileE.cs
+     |-- FileF.cs
+     |-- Order.csproj
+   |-- User
+     |-- FileG.cs
+     |-- FileH.cs
+     |-- User.csproj
+</pre>
+
+Dependencies
+<pre>
+Basket -> Catalog
+Order -> Catalog
+Order -> User
+</pre>
+
+Output
+**monosharp --slnDir ./eShop**
+<pre>
+eShop/Catalog/Catalog.csproj
+eShop/Basket/Basket.csproj
+eShop/Order/Order.csproj
+</pre>
+
 ## Build
 
 ``
@@ -18,9 +56,6 @@ go build
 ``
 
 ## Usage
-
-### Examples
-
 <pre>
 mono-sharp
 mono-sharp --slnDir /some/path
